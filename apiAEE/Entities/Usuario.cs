@@ -1,13 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using apiAEE.Entities;
 using System.ComponentModel.DataAnnotations.Schema;
-
-namespace ApiAEE.Entities;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 public class Usuario
 {
+	[JsonIgnore]
 	public int Id { get; set; }
 
-	//[Required]
 	[StringLength(100)]
 	public string? Nome { get; set; }
 
@@ -19,11 +19,16 @@ public class Usuario
 	[Required]
 	public string? Senha { get; set; }
 
-
 	[StringLength(80)]
 	public string? Telefone { get; set; }
 
 	[NotMapped]
+	[JsonIgnore]
 	public IFormFile? Imagem { get; set; }
 
+	// Coleção de relacionamentos com equipes
+	[JsonIgnore]
+	public ICollection<Pertence> Pertences { get; set; } = new List<Pertence>();
+
+    public bool IsAdmin { get; set; } = false;
 }
