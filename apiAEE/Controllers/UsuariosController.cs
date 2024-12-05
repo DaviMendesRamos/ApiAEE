@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+
 
 namespace ApiAEE.Controllers;
 
@@ -87,8 +87,7 @@ public class UsuariosController : ControllerBase
             }
 
             // Verifica se o usuário é admin (baseado na configuração)
-            var adminEmails = _config.GetSection("Admins").Get<List<string>>();
-            bool isAdmin = adminEmails.Contains(usuarioAtual.Email);
+            
 
             // Criação do token JWT
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:Key"]!));
@@ -98,7 +97,7 @@ public class UsuariosController : ControllerBase
         {
             new Claim(ClaimTypes.Email, usuario.Email!),
             new Claim(ClaimTypes.Name, usuarioAtual.Nome),
-            new Claim(ClaimTypes.Role, isAdmin ? "admin" : "user") // Role adicionada ao token
+            new Claim(ClaimTypes.Role, usuarioAtual.IsAdmin? "admin" : "user") // Role adicionada ao token
         };
 
             var token = new JwtSecurityToken(
@@ -117,7 +116,8 @@ public class UsuariosController : ControllerBase
                 tokentype = "bearer",
                 usuarioid = usuarioAtual.Id,
                 usuarionome = usuarioAtual.Nome,
-                role = isAdmin ? "admin" : "user"
+                role = usuarioAtual.IsAdmin ? "admin" : "user"
+              
             });
         }
         catch (Exception ex)
@@ -131,7 +131,7 @@ public class UsuariosController : ControllerBase
         }
     }
     [HttpGet("[action]")]
-    [Authorize] // Garante que apenas usuários autenticados podem acessar
+     // Garante que apenas usuários autenticados podem acessar
     public async Task<IActionResult> GetUsuarioAtual()
     {
         try
