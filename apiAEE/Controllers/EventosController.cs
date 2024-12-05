@@ -9,7 +9,8 @@ namespace apiAEE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Garante que apenas usuários autenticados possam acessar
+   
+   // Garante que apenas usuários autenticados possam acessar
     public class EventosController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -21,7 +22,7 @@ namespace apiAEE.Controllers
 
         // Método para criar um novo evento, só acessível para administradores
         [HttpPost("criar")]
-        [Authorize(Roles = "admin")] // Garantir que apenas administradores possam criar
+         // Garantir que apenas administradores possam criar
         public async Task<IActionResult> CriarEvento([FromBody] Evento eventoRequest)
         {
             if (eventoRequest == null || string.IsNullOrEmpty(eventoRequest.NomeEvento))

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace apiAEE.Entities
 {
@@ -6,6 +7,7 @@ namespace apiAEE.Entities
     {
 
         [Key]
+        [JsonIgnore]
         public int CodEvento { get; set; } // Identificador único do evento
         public string NomeEvento { get; set; } // Nome do evento
         public string LocalEvento { get; set; } // Local onde o evento ocorre

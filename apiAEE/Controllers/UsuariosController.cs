@@ -130,6 +130,124 @@ public class UsuariosController : ControllerBase
             });
         }
     }
+    [HttpGet("[action]")]
+    [Authorize] // Garante que apenas usuários autenticados podem acessar
+    public async Task<IActionResult> GetUsuarioAtual()
+    {
+        try
+        {
+            // Obtém o ID do usuário a partir do token JWT
+            var usuarioIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Verifica se o ID do usuário existe no token
+            if (string.IsNullOrEmpty(usuarioIdString))
+            {
+                return Unauthorized("Usuário não autenticado.");
+            }
+
+            // Converte o ID de string para Guid
+            if (!int.TryParse(usuarioIdString, out int usuarioId))
+            {
+                return BadRequest("ID de usuário inválido.");
+            }
+
+            // Busca o usuário no banco de dados
+            var usuario = await dbContext.Usuarios
+                .Where(u => u.Id == usuarioId)
+                .Select(u => new
+                {
+                    u.Id,
+                    u.Nome,
+                    u.Email,
+                    u.IsAdmin // Supondo que este campo existe na tabela
+                })
+                .FirstOrDefaultAsync();
+
+            // Verifica se o usuário foi encontrado
+            if (usuario == null)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
+
+            return Ok(usuario);
+        }
+        catch (Exception ex)
+        {
+            // Log de erro detalhado
+            Console.WriteLine($"Erro: {ex.Message}");
+
+            // Retorna um erro 500 com detalhes do problema
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                Mensagem = "Erro ao buscar o usuário atual",
+                Detalhes = ex.Message
+            });
+        }
+    }
+
+    [HttpPut("[action]")]
+    public async Task<IActionResult> EditarUsuario([FromBody] Usuario usuarioAtualizado)
+    {
+        try
+        {
+            // Obtém o ID do usuário a partir do token JWT
+            var usuarioIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Verifica se o ID do usuário existe no token
+            if (string.IsNullOrEmpty(usuarioIdString))
+            {
+                return Unauthorized("Usuário não autenticado.");
+            }
+
+            // Converte o ID de string para int
+            if (!int.TryParse(usuarioIdString, out int usuarioId))
+            {
+                return BadRequest("ID de usuário inválido.");
+            }
+
+            // Busca o usuário no banco de dados
+            var usuario = await dbContext.Usuarios.FirstOrDefaultAsync(u => u.Id == usuarioId);
+
+            // Verifica se o usuário foi encontrado
+            if (usuario == null)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
+
+            // Atualiza os dados do usuário apenas se os valores novos forem fornecidos
+            usuario.Nome = string.IsNullOrEmpty(usuarioAtualizado.Nome) ? usuario.Nome : usuarioAtualizado.Nome;
+            usuario.Email = string.IsNullOrEmpty(usuarioAtualizado.Email) ? usuario.Email : usuarioAtualizado.Email;
+
+            // Atualiza a senha, se fornecida
+            if (!string.IsNullOrEmpty(usuarioAtualizado.Senha))
+            {
+                var passwordHasher = new PasswordHasher<Usuario>();
+                usuario.Senha = passwordHasher.HashPassword(usuario, usuarioAtualizado.Senha);
+            }
+
+            // Salva as mudanças no banco de dados
+            dbContext.Usuarios.Update(usuario);
+            await dbContext.SaveChangesAsync();
+
+            return Ok(new { Mensagem = "Usuário atualizado com sucesso." });
+        }
+        catch (Exception ex)
+        {
+            // Log de erro detalhado
+            Console.WriteLine($"Erro: {ex.Message}");
+
+            // Retorna um erro 500 com detalhes do problema
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                Mensagem = "Erro ao atualizar o usuário",
+                Detalhes = ex.Message
+            });
+        }
+    }
+
+
+
+
 
 }
 
