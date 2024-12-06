@@ -132,7 +132,7 @@ public class UsuariosController : ControllerBase
     }
     [HttpGet("[action]")]
      // Garante que apenas usuários autenticados podem acessar
-    public async Task<IActionResult> GetUsuarioAtual()
+    public async Task<IActionResult> GetUsuarioAtual([FromBody] Usuario usuario)
     {
         try
         {
@@ -140,10 +140,7 @@ public class UsuariosController : ControllerBase
             var usuarioIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             // Verifica se o ID do usuário existe no token
-            if (string.IsNullOrEmpty(usuarioIdString))
-            {
-                return Unauthorized("Usuário não autenticado.");
-            }
+            
 
             // Converte o ID de string para Guid
             if (!int.TryParse(usuarioIdString, out int usuarioId))
@@ -152,7 +149,7 @@ public class UsuariosController : ControllerBase
             }
 
             // Busca o usuário no banco de dados
-            var usuario = await dbContext.Usuarios
+            var usuarioAtual = await dbContext.Usuarios
                 .Where(u => u.Id == usuarioId)
                 .Select(u => new
                 {
