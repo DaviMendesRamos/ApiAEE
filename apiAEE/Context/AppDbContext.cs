@@ -30,12 +30,8 @@ namespace apiAEE.Context
                 .HasForeignKey(p => p.CodUsuario)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Configuração da relação entre Equipe e Usuario (CriadorId)
-            modelBuilder.Entity<Equipe>()
-                .HasOne(e => e.Criador)
-                .WithMany() // Não cria coleção em Usuario para evitar confusão
-                .HasForeignKey(e => e.CriadorId)
-                .OnDelete(DeleteBehavior.Restrict); // Evita exclusão em cascata
+          
+           
 
             base.OnModelCreating(modelBuilder);
         }

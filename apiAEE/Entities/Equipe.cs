@@ -8,17 +8,17 @@ namespace apiAEE.Entities
     {
         [JsonIgnore]
         [Key]
-        public int CodEquipes { get; set; }
+        public int CodEquipe { get; set; }
 
         public string NomeEquipe { get; set; } = string.Empty;
-        public string? NomeJogadores { get; set; } = string.Empty;
+
+        public string? Modalidade { get; set; }
 
         // Relacionamento com "Pertence"
         [JsonIgnore]
         public ICollection<Pertence>? Pertences { get; set; }
 
-        // Relacionamento com o criador
-        public int CriadorId { get; set; }  // Referência para o usuário criador
-        public Usuario Criador { get; set; }  // Relacionamento com o usuário criador
+       
+       
     }
 }
