@@ -22,7 +22,10 @@ public class Usuario
 	[StringLength(80)]
 	public string? Telefone { get; set; }
 
-	[NotMapped]
+    [StringLength(100)]
+    public string? UrlImagem { get; set; }
+
+    [NotMapped]
 	[JsonIgnore]
 	public IFormFile? Imagem { get; set; }
 

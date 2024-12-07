@@ -28,7 +28,6 @@ public class UsuariosController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status201Created)]
 	[ProducesResponseType(StatusCodes.Status400BadRequest)]
 
-
     public async Task<IActionResult> Register([FromBody] Usuario usuario)
     {
         try
@@ -60,9 +59,6 @@ public class UsuariosController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { Mensagem = "Erro ao processar o registro", Detalhes = ex.Message });
         }
     }
-
-
-
 
     [HttpPost("[action]")]
     public async Task<IActionResult> Login([FromBody] Usuario usuario)
@@ -98,7 +94,8 @@ public class UsuariosController : ControllerBase
         {
             new Claim(ClaimTypes.Email, usuario.Email!),
             new Claim(ClaimTypes.Name, usuarioAtual.Nome),
-            new Claim(ClaimTypes.Role, isAdmin ? "admin" : "user") // Role adicionada ao token
+            new Claim(ClaimTypes.Role, isAdmin ? "admin" : "user"),
+            new Claim(ClaimTypes.NameIdentifier, usuarioAtual.Id.ToString()),
         };
 
             var token = new JwtSecurityToken(
@@ -130,8 +127,8 @@ public class UsuariosController : ControllerBase
             });
         }
     }
+
     [HttpGet("[action]")]
-    [Authorize] // Garante que apenas usuários autenticados podem acessar
     public async Task<IActionResult> GetUsuarioAtual()
     {
         try
@@ -145,7 +142,7 @@ public class UsuariosController : ControllerBase
                 return Unauthorized("Usuário não autenticado.");
             }
 
-            // Converte o ID de string para Guid
+            
             if (!int.TryParse(usuarioIdString, out int usuarioId))
             {
                 return BadRequest("ID de usuário inválido.");
@@ -245,7 +242,66 @@ public class UsuariosController : ControllerBase
         }
     }
 
+    [HttpPost("uploadfotousuario")]
+    public async Task<IActionResult> UploadFotoUsuario(IFormFile imagem)
+    {
+        var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+        var usuario = await dbContext.Usuarios.FirstOrDefaultAsync(u => u.Email == userEmail);
 
+        if (usuario is null)
+        {
+            return NotFound("Usuário não encontrado");
+        }
+
+        if (imagem is not null)
+        {
+            // Gera um nome de arquivo unico para a imagem enviada 
+            string uniqueFileName = Guid.NewGuid().ToString() + "_" + imagem.FileName;
+
+            // cria o caminho completo combinando o diretorio 
+            // wwwroot/userimages com o nome do arquivo
+            string filePath = Path.Combine("wwwroot/userimages", uniqueFileName);
+
+            //cria o arquivo de imagem usando o caminho completo
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await imagem.CopyToAsync(stream);
+            }
+
+            // Atualiza a propriedade UrlImagem do usuário
+            // com a URL da imagem enviada
+            usuario.UrlImagem = "/userimages/" + uniqueFileName;
+
+            await dbContext.SaveChangesAsync();
+            return Ok("Imagem enviada com sucesso");
+        }
+        return BadRequest("Nenhuma imagem enviada");
+    }
+
+  
+    [HttpGet("[action]")]
+    public async Task<IActionResult> ImagemPerfilUsuario()
+    {
+        //verifica se o usuário esta autenticado
+        var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+
+        var usuario = await dbContext.Usuarios.FirstOrDefaultAsync(u => u.Email == userEmail);
+
+        if (usuario is null)
+            return NotFound("Usuário não encontrado");
+
+        var imagemPerfil = await dbContext.Usuarios
+                                .Where(x => x.Email == userEmail)
+                                .Select(x => new
+                                {
+                                    x.UrlImagem,
+                                })
+                                .SingleOrDefaultAsync();
+
+        return Ok(imagemPerfil);
+    }
+
+    
 
 
 
