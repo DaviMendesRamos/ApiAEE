@@ -5,9 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using System.Text.Json;
+using System.Net;
+using Xamarin.Essentials;
+
 
 namespace ApiAEE.Controllers;
 
@@ -83,8 +88,7 @@ public class UsuariosController : ControllerBase
             }
 
             // Verifica se o usuário é admin (baseado na configuração)
-            var adminEmails = _config.GetSection("Admins").Get<List<string>>();
-            bool isAdmin = adminEmails.Contains(usuarioAtual.Email);
+            
 
             // Criação do token JWT
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:Key"]!));
@@ -94,7 +98,7 @@ public class UsuariosController : ControllerBase
         {
             new Claim(ClaimTypes.Email, usuario.Email!),
             new Claim(ClaimTypes.Name, usuarioAtual.Nome),
-            new Claim(ClaimTypes.Role, isAdmin ? "admin" : "user"),
+            new Claim(ClaimTypes.Role, usuarioAtual.IsAdmin ? "admin" : "user"),
             new Claim(ClaimTypes.NameIdentifier, usuarioAtual.Id.ToString()),
         };
 
@@ -114,7 +118,8 @@ public class UsuariosController : ControllerBase
                 tokentype = "bearer",
                 usuarioid = usuarioAtual.Id,
                 usuarionome = usuarioAtual.Nome,
-                role = isAdmin ? "admin" : "user"
+                role = usuarioAtual.IsAdmin ? "admin" : "user"
+              
             });
         }
         catch (Exception ex)
@@ -131,6 +136,7 @@ public class UsuariosController : ControllerBase
     [HttpGet("[action]")]
     public async Task<IActionResult> GetUsuarioAtual()
     {
+        // Obtendo o token JWT armazenado
         try
         {
             // Obtém o ID do usuário a partir do token JWT
@@ -139,13 +145,19 @@ public class UsuariosController : ControllerBase
             // Verifica se o ID do usuário existe no token
             if (string.IsNullOrEmpty(usuarioIdString))
             {
-                return Unauthorized("Usuário não autenticado.");
+                return Unauthorized(new
+                {
+                    Mensagem = "Usuário não autenticado. Token JWT inválido ou ausente."
+                });
             }
 
-            
+            // Converte o ID do usuário de string para Guid
             if (!int.TryParse(usuarioIdString, out int usuarioId))
             {
-                return BadRequest("ID de usuário inválido.");
+                return BadRequest(new
+                {
+                    Mensagem = "ID de usuário inválido no token."
+                });
             }
 
             // Busca o usuário no banco de dados
@@ -163,7 +175,10 @@ public class UsuariosController : ControllerBase
             // Verifica se o usuário foi encontrado
             if (usuario == null)
             {
-                return NotFound("Usuário não encontrado.");
+                return NotFound(new
+                {
+                    Mensagem = "Usuário não encontrado no banco de dados."
+                });
             }
 
             return Ok(usuario);
@@ -171,18 +186,18 @@ public class UsuariosController : ControllerBase
         catch (Exception ex)
         {
             // Log de erro detalhado
-            Console.WriteLine($"Erro: {ex.Message}");
+            Console.WriteLine($"Erro ao buscar o usuário atual: {ex.Message}");
 
             // Retorna um erro 500 com detalhes do problema
             return StatusCode(StatusCodes.Status500InternalServerError, new
             {
-                Mensagem = "Erro ao buscar o usuário atual",
+                Mensagem = "Erro interno ao buscar o usuário atual.",
                 Detalhes = ex.Message
             });
         }
-    }
 
-    [HttpPut("[action]")]
+    }
+        [HttpPut("[action]")]
     public async Task<IActionResult> EditarUsuario([FromBody] Usuario usuarioAtualizado)
     {
         try
