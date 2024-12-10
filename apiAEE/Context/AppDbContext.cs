@@ -16,7 +16,7 @@ namespace apiAEE.Context
         {
             // Configuração da tabela associativa "Pertence"
             modelBuilder.Entity<Pertence>()
-                .HasKey(p => new { p.CodEquipe, p.CodUsuario });
+                .HasKey(p => new { p.CodEquipe, p.ID});
 
             modelBuilder.Entity<Pertence>()
                 .HasOne(p => p.Equipe)
@@ -27,11 +27,27 @@ namespace apiAEE.Context
             modelBuilder.Entity<Pertence>()
                 .HasOne(p => p.Usuario)
                 .WithMany(u => u.Pertences)
-                .HasForeignKey(p => p.CodUsuario)
+                .HasForeignKey(p => p.ID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-          
-           
+            // Configurar a tabela intermediária "Cadastrar"
+            modelBuilder.Entity<Cadastrar>()
+                .HasKey(c => new { c.CodEquipe, c.CodEvento }); // Definir chave composta
+
+            modelBuilder.Entity<Cadastrar>()
+                .HasOne(c => c.Equipe) // Relacionamento com "Equipe"
+                .WithMany(e => e.Cadastrar) // Uma equipe pode estar em várias inscrições
+                .HasForeignKey(c => c.CodEquipe) // Chave estrangeira
+                .OnDelete(DeleteBehavior.Cascade); // Comportamento de exclusão em cascata
+
+            modelBuilder.Entity<Cadastrar>()
+                .HasOne(c => c.Evento) // Relacionamento com "Evento"
+                .WithMany(e => e.Cadastrar) // Um evento pode ter várias equipes inscritas
+                .HasForeignKey(c => c.CodEvento) // Chave estrangeira
+                .OnDelete(DeleteBehavior.Cascade); // Comportamento de exclusão em cascat
+
+        modelBuilder.Entity<Usuario>().ToTable("Usuarios");
+
 
             base.OnModelCreating(modelBuilder);
         }

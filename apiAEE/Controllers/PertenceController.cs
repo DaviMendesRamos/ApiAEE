@@ -52,7 +52,7 @@ namespace apiAEE.Controllers
 				// Criar o relacionamento Pertence
 				var pertence = new Pertence
 				{
-					CodUsuario = usuarioId,
+					ID = usuarioId,
 					CodEquipe = equipeId
 				};
 
@@ -61,7 +61,7 @@ namespace apiAEE.Controllers
 				await _context.SaveChangesAsync();
 
 				// Retornar sucesso com o objeto Pertence criado
-				return CreatedAtAction(nameof(InscreverUsuarioEmEquipe), new { usuarioId = pertence.CodUsuario, equipeId = pertence.CodEquipe }, pertence);
+				return CreatedAtAction(nameof(InscreverUsuarioEmEquipe), new { usuarioId = pertence.ID, equipeId = pertence.CodEquipe }, pertence);
 			}
 			catch (Exception ex)
 			{
@@ -75,7 +75,7 @@ namespace apiAEE.Controllers
 		public async Task<IActionResult> RemoveUsuarioFromEquipe(int usuarioId, int equipeId)
 		{
 			var pertence = await _context.Pertences
-				.FirstOrDefaultAsync(p => p.CodUsuario == usuarioId && p.CodEquipe == equipeId);
+				.FirstOrDefaultAsync(p => p.ID == usuarioId && p.CodEquipe == equipeId);
 
 			if (pertence == null) return NotFound();
 

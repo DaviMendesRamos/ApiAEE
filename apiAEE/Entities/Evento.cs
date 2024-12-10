@@ -13,5 +13,8 @@ namespace apiAEE.Entities
         public string LocalEvento { get; set; } // Local onde o evento ocorre
         public DateTime DataInicio { get; set; } // Data de início do evento
         public DateTime DataFim { get; set; } // Data de término do evento
+
+        [JsonIgnore]
+        public ICollection<Cadastrar> Cadastrar { get; set; }
     }
 }

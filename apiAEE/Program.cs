@@ -5,12 +5,12 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using apiAEE.Entities;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// configura a aplicação para autenticar os usuários usando tokens JWT,
+// Configura a aplicação para autenticar os usuários usando tokens JWT,
 // verificando o emissor, audiência, tempo de vida e chave de assinatura
-// do emissor
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -20,14 +20,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            //define o emissor e a audiência validas para o token
-            //JWT obtidos da aplicação
+            // Define o emissor e a audiência válidos para o token
             ValidAudience = builder.Configuration["JWT:Audience"],
             ValidIssuer = builder.Configuration["JWT:Issuer"],
-            //Define a chave de assinatura usada para assinar e
-            //verificar o token JWT.
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding
-                .UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+            // Define a chave de assinatura usada para assinar e
+            // verificar o token JWT
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
         };
     });
 
@@ -35,7 +33,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "ApiAEE", Version = "v1" });
 
-    // Define um esquema securo para JWT
+    // Define um esquema seguro para JWT
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization usando o Bearer scheme",
@@ -62,28 +60,45 @@ builder.Services.AddSwaggerGen(c =>
 
 var connection = builder.Configuration.GetConnectionString("DefaultConnection");
 
-//permite injetar a instância do contexto nos controladores
+// Permite injetar a instância do contexto nos controladores
 builder.Services.AddDbContext<AppDbContext>(option =>
                                             option.UseSqlServer(connection));
 
 // Adiciona os serviços ao container.
 builder.Services.AddControllers();
 
+// Configura o acesso às configurações dos administradores
 builder.Services.Configure<AdminSettings>(builder.Configuration.GetSection("Admins"));
+
+// Adiciona o serviço de arquivos estáticos (acesso a pastas específicas)
+builder.Services.AddDirectoryBrowser();
+
 var app = builder.Build();
 
+// Configura a interface Swagger para API
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "AppAEE V1");
 });
 
-// Configure o pipeline do HTTP request 
-app.UseStaticFiles();
+// Configura o pipeline do HTTP request
+app.UseStaticFiles(); // Servindo arquivos estáticos, como imagens
+
+// Se necessário, configura a pasta 'userimages' como acessível diretamente
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "userimages")),
+    RequestPath = "/userimages"
+});
+
+// Redireciona as requisições HTTP para HTTPS
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication(); // Autenticação
+app.UseAuthorization(); // Autorização
 
+// Mapeia os controladores para a aplicação
 app.MapControllers();
+
 app.Run();

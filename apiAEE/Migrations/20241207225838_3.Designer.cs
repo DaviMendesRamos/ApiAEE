@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using apiAEE.Context;
 
@@ -11,9 +12,11 @@ using apiAEE.Context;
 namespace apiAEE.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241207225838_3")]
+    partial class _3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,6 +38,9 @@ namespace apiAEE.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<byte[]>("ImagemPerfil")
+                        .HasColumnType("varbinary(max)");
+
                     b.Property<bool>("IsAdmin")
                         .HasColumnType("bit");
 
@@ -51,12 +57,9 @@ namespace apiAEE.Migrations
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
 
-                    b.Property<string>("UrlImagem")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
-                    b.ToTable("Usuarios", (string)null);
+                    b.ToTable("Usuarios");
                 });
 
             modelBuilder.Entity("apiAEE.Entities.Equipe", b =>
@@ -111,12 +114,15 @@ namespace apiAEE.Migrations
                     b.Property<int>("CodEquipe")
                         .HasColumnType("int");
 
-                    b.Property<int>("ID")
+                    b.Property<int>("CodUsuario")
                         .HasColumnType("int");
 
-                    b.HasKey("CodEquipe", "ID");
+                    b.Property<bool>("Aceito")
+                        .HasColumnType("bit");
 
-                    b.HasIndex("ID");
+                    b.HasKey("CodEquipe", "CodUsuario");
+
+                    b.HasIndex("CodUsuario");
 
                     b.ToTable("Pertences");
                 });
@@ -131,7 +137,7 @@ namespace apiAEE.Migrations
 
                     b.HasOne("Usuario", "Usuario")
                         .WithMany("Pertences")
-                        .HasForeignKey("ID")
+                        .HasForeignKey("CodUsuario")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

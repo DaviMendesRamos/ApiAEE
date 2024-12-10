@@ -22,7 +22,8 @@ public class Usuario
 	[StringLength(80)]
 	public string? Telefone { get; set; }
 
-    [StringLength(100)]
+	[JsonIgnore]
+    
     public string? UrlImagem { get; set; }
 
     [NotMapped]

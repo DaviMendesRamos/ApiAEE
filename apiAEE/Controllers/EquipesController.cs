@@ -3,6 +3,7 @@ using apiAEE.Entities;
 using Microsoft.EntityFrameworkCore;
 using apiAEE.Context;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace apiAEE.Controllers
 {
@@ -19,12 +20,19 @@ namespace apiAEE.Controllers
 
         // Endpoint para criar uma nova equipe
         [HttpPost("criarEquipe")]
-          // Garantir que o usuário esteja autenticado
         public async Task<IActionResult> CriarEquipe([FromBody] Equipe equipeRequest)
         {
             if (equipeRequest == null || string.IsNullOrEmpty(equipeRequest.NomeEquipe))
             {
                 return BadRequest("O nome da equipe é obrigatório.");
+            }
+
+            // Obter o ID do usuário do JWT
+            var usuarioId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (usuarioId == null)
+            {
+                return Unauthorized("Usuário não autenticado.");
             }
 
             // Criar a nova equipe
@@ -37,21 +45,15 @@ namespace apiAEE.Controllers
             _context.Equipes.Add(equipe);
             await _context.SaveChangesAsync();
 
-            // Obter o ID do usuário que fez a requisição
-            var usuarioId = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
-
-            if (usuarioId != null)
+            // Criar a associação no controlador de Pertence
+            var pertence = new Pertence
             {
-                // Criar a associação no controlador de Pertence
-                var pertence = new Pertence
-                {
-                    CodUsuario = int.Parse(usuarioId),
-                    CodEquipe = equipe.CodEquipe
-                };
+                ID = int.Parse(usuarioId),
+                CodEquipe = equipe.CodEquipe
+            };
 
-                _context.Pertences.Add(pertence);
-                await _context.SaveChangesAsync();
-            }
+            _context.Pertences.Add(pertence);
+            await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(BuscarEquipePorNome), new { nome = equipe.NomeEquipe }, equipe);
         }
@@ -96,28 +98,38 @@ namespace apiAEE.Controllers
 
             return Ok($"Equipe com o nome '{nome}' foi deletada com sucesso.");
         }
-        [HttpGet("minhasEquipes")]
-        [Authorize] // Garantir que o usuário esteja autenticado
+        [HttpGet("equipesDoUsuario")]
+         // Garante que apenas usuários autenticados possam acessar
         public async Task<IActionResult> ListarEquipesDoUsuario()
         {
-            // Obter o ID do usuário que fez a requisição
-            var usuarioId = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            // Obtém o ID do usuário do token JWT
+            var usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (usuarioId == null)
+            if (string.IsNullOrEmpty(usuarioId))
             {
                 return Unauthorized("Usuário não autenticado.");
             }
 
-            int id = int.Parse(usuarioId);
+           
 
-            // Buscar equipes associadas ao usuário na tabela Pertence
+            // Verifica se o ID do usuário existe no token
+           
+
+            // Converte o ID para int (ou o tipo que você está usando para IDs)
+            var id = int.Parse(usuarioId);
+
+            // Busca as equipes associadas ao usuário
             var equipes = await _context.Pertences
-                .Where(p => p.CodUsuario == id)
-                .Include(p => p.Equipe)
-                .Select(p => p.Equipe)
+                .Where(p => p.ID == id)
+                .Select(p => p.Equipe) // Retorna apenas as equipes associadas
                 .ToListAsync();
 
-            return Ok(equipes);
+            if (equipes == null || equipes.Count == 0)
+            {
+                return Ok(new List<Equipe>());
+            }
+
+            return Ok(equipes); // Retorna as equipes em formato JSON
         }
     }
 }

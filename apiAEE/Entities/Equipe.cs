@@ -18,7 +18,11 @@ namespace apiAEE.Entities
         [JsonIgnore]
         public ICollection<Pertence>? Pertences { get; set; }
 
-       
-       
+        [JsonIgnore]
+        public ICollection<Cadastrar> Cadastrar { get; set; }
+
+
+
+
     }
 }

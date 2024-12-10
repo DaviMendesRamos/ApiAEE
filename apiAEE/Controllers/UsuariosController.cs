@@ -168,7 +168,8 @@ public class UsuariosController : ControllerBase
                     u.Id,
                     u.Nome,
                     u.Email,
-                    u.IsAdmin // Supondo que este campo existe na tabela
+                    u.IsAdmin,
+                    u.UrlImagem// Supondo que este campo existe na tabela
                 })
                 .FirstOrDefaultAsync();
 
@@ -197,7 +198,8 @@ public class UsuariosController : ControllerBase
         }
 
     }
-        [HttpPut("[action]")]
+
+    [HttpPut("[action]")]
     public async Task<IActionResult> EditarUsuario([FromBody] Usuario usuarioAtualizado)
     {
         try
@@ -260,6 +262,7 @@ public class UsuariosController : ControllerBase
     [HttpPost("uploadfotousuario")]
     public async Task<IActionResult> UploadFotoUsuario(IFormFile imagem)
     {
+        // Obtém o e-mail do usuário autenticado a partir do token
         var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
         var usuario = await dbContext.Usuarios.FirstOrDefaultAsync(u => u.Email == userEmail);
 
@@ -270,57 +273,48 @@ public class UsuariosController : ControllerBase
 
         if (imagem is not null)
         {
-            // Gera um nome de arquivo unico para a imagem enviada 
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + imagem.FileName;
+            // Gera um nome único para a imagem
+            string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imagem.FileName);
 
-            // cria o caminho completo combinando o diretorio 
-            // wwwroot/userimages com o nome do arquivo
-            string filePath = Path.Combine("wwwroot/userimages", uniqueFileName);
+            // Define o caminho físico no servidor
+            string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "userimages");
 
-            //cria o arquivo de imagem usando o caminho completo
+            // Cria a pasta 'userimages' se ela não existir
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+
+            // Caminho completo para o arquivo no sistema de arquivos
+            string filePath = Path.Combine(folderPath, uniqueFileName);
+
+            // Salva o arquivo no caminho físico
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await imagem.CopyToAsync(stream);
             }
 
-            // Atualiza a propriedade UrlImagem do usuário
-            // com a URL da imagem enviada
-            usuario.UrlImagem = "/userimages/" + uniqueFileName;
+            // Define a URL pública da imagem
+            usuario.UrlImagem = $"https://appaee-a9g2awdggsdmcsc4.brazilsouth-01.azurewebsites.net/userimages/{uniqueFileName}";
 
+            // Salva as alterações no banco de dados
             await dbContext.SaveChangesAsync();
             return Ok("Imagem enviada com sucesso");
         }
+
         return BadRequest("Nenhuma imagem enviada");
     }
 
-  
-    [HttpGet("[action]")]
-    public async Task<IActionResult> ImagemPerfilUsuario()
-    {
-        //verifica se o usuário esta autenticado
-        var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-
-        var usuario = await dbContext.Usuarios.FirstOrDefaultAsync(u => u.Email == userEmail);
-
-        if (usuario is null)
-            return NotFound("Usuário não encontrado");
-
-        var imagemPerfil = await dbContext.Usuarios
-                                .Where(x => x.Email == userEmail)
-                                .Select(x => new
-                                {
-                                    x.UrlImagem,
-                                })
-                                .SingleOrDefaultAsync();
-
-        return Ok(imagemPerfil);
-    }
-
-    
-
-
 
 }
+
+
+
+
+
+
+
+
 
 
 
