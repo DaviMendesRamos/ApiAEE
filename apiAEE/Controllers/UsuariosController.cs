@@ -20,18 +20,18 @@ namespace ApiAEE.Controllers;
 [ApiController]
 public class UsuariosController : ControllerBase
 {
-	private readonly AppDbContext dbContext;
-	private readonly IConfiguration _config;
+    private readonly AppDbContext dbContext;
+    private readonly IConfiguration _config;
 
-	public UsuariosController(AppDbContext dbContext, IConfiguration config)
-	{
-		_config = config;
-		this.dbContext = dbContext;
-	}
+    public UsuariosController(AppDbContext dbContext, IConfiguration config)
+    {
+        _config = config;
+        this.dbContext = dbContext;
+    }
 
-	[HttpPost("[action]")]
-	[ProducesResponseType(StatusCodes.Status201Created)]
-	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [HttpPost("[action]")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
 
     public async Task<IActionResult> Register([FromBody] Usuario usuario)
     {
@@ -88,7 +88,7 @@ public class UsuariosController : ControllerBase
             }
 
             // Verifica se o usuário é admin (baseado na configuração)
-            
+
 
             // Criação do token JWT
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:Key"]!));
@@ -119,7 +119,7 @@ public class UsuariosController : ControllerBase
                 usuarioid = usuarioAtual.Id,
                 usuarionome = usuarioAtual.Nome,
                 role = usuarioAtual.IsAdmin ? "admin" : "user"
-              
+
             });
         }
         catch (Exception ex)
@@ -295,7 +295,7 @@ public class UsuariosController : ControllerBase
             }
 
             // Define a URL pública da imagem
-            usuario.UrlImagem = $"https://appaee-a9g2awdggsdmcsc4.brazilsouth-01.azurewebsites.net/userimages/{uniqueFileName}";
+            usuario.UrlImagem = $"http://10.0.2.2:5053/userimages/{uniqueFileName}";
 
             // Salva as alterações no banco de dados
             await dbContext.SaveChangesAsync();
@@ -304,6 +304,67 @@ public class UsuariosController : ControllerBase
 
         return BadRequest("Nenhuma imagem enviada");
     }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> BuscarUsuariosPorNome([FromQuery] string nome)
+    {
+        try
+        {
+            var usuarios = await dbContext.Usuarios
+                .Where(u => u.Nome.Contains(nome))
+                .Select(u => new
+                {
+                    u.Id,
+                    u.Nome,
+                    u.Email,
+                    u.IsAdmin
+                })
+                .ToListAsync();
+
+            if (usuarios == null || usuarios.Count == 0)
+            {
+                return NotFound("Nenhum usuário encontrado com esse nome.");
+            }
+
+            return Ok(usuarios);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                Mensagem = "Erro ao buscar usuários",
+                Detalhes = ex.Message
+            });
+        }
+    }
+    [HttpPost("[action]")]
+    public async Task<IActionResult> AtribuirAdministrador([FromBody] int usuarioId)
+    {
+        try
+        {
+            var usuario = await dbContext.Usuarios.FirstOrDefaultAsync(u => u.Id == usuarioId);
+            if (usuario == null)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
+
+            // Atribui o cargo de admin
+            usuario.IsAdmin = true;
+            dbContext.Usuarios.Update(usuario);
+            await dbContext.SaveChangesAsync();
+
+            return Ok(new { Mensagem = "Usuário agora é um administrador." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                Mensagem = "Erro ao atribuir administrador",
+                Detalhes = ex.Message
+            });
+        }
+    }
+
 
 
 }

@@ -12,8 +12,8 @@ using apiAEE.Context;
 namespace apiAEE.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241206180611_arrumarevento")]
-    partial class arrumarevento
+    [Migration("20241210223427_inicial")]
+    partial class inicial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -54,9 +54,27 @@ namespace apiAEE.Migrations
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
 
+                    b.Property<string>("UrlImagem")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Usuarios");
+                    b.ToTable("Usuarios", (string)null);
+                });
+
+            modelBuilder.Entity("apiAEE.Entities.Cadastrar", b =>
+                {
+                    b.Property<int>("CodEquipe")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CodEvento")
+                        .HasColumnType("int");
+
+                    b.HasKey("CodEquipe", "CodEvento");
+
+                    b.HasIndex("CodEvento");
+
+                    b.ToTable("Cadastras");
                 });
 
             modelBuilder.Entity("apiAEE.Entities.Equipe", b =>
@@ -111,17 +129,33 @@ namespace apiAEE.Migrations
                     b.Property<int>("CodEquipe")
                         .HasColumnType("int");
 
-                    b.Property<int>("CodUsuario")
+                    b.Property<int>("ID")
                         .HasColumnType("int");
 
-                    b.Property<bool>("Aceito")
-                        .HasColumnType("bit");
+                    b.HasKey("CodEquipe", "ID");
 
-                    b.HasKey("CodEquipe", "CodUsuario");
-
-                    b.HasIndex("CodUsuario");
+                    b.HasIndex("ID");
 
                     b.ToTable("Pertences");
+                });
+
+            modelBuilder.Entity("apiAEE.Entities.Cadastrar", b =>
+                {
+                    b.HasOne("apiAEE.Entities.Equipe", "Equipe")
+                        .WithMany("Cadastrar")
+                        .HasForeignKey("CodEquipe")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("apiAEE.Entities.Evento", "Evento")
+                        .WithMany("Cadastrar")
+                        .HasForeignKey("CodEvento")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Equipe");
+
+                    b.Navigation("Evento");
                 });
 
             modelBuilder.Entity("apiAEE.Entities.Pertence", b =>
@@ -134,7 +168,7 @@ namespace apiAEE.Migrations
 
                     b.HasOne("Usuario", "Usuario")
                         .WithMany("Pertences")
-                        .HasForeignKey("CodUsuario")
+                        .HasForeignKey("ID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -150,7 +184,14 @@ namespace apiAEE.Migrations
 
             modelBuilder.Entity("apiAEE.Entities.Equipe", b =>
                 {
+                    b.Navigation("Cadastrar");
+
                     b.Navigation("Pertences");
+                });
+
+            modelBuilder.Entity("apiAEE.Entities.Evento", b =>
+                {
+                    b.Navigation("Cadastrar");
                 });
 #pragma warning restore 612, 618
         }

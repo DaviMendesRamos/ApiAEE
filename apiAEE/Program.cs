@@ -1,11 +1,11 @@
 using apiAEE.Context;
+using apiAEE.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using apiAEE.Entities;
-using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,6 +58,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 var connection = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Permite injetar a instância do contexto nos controladores
@@ -72,9 +74,21 @@ builder.Services.Configure<AdminSettings>(builder.Configuration.GetSection("Admi
 
 // Adiciona o serviço de arquivos estáticos (acesso a pastas específicas)
 builder.Services.AddDirectoryBrowser();
+builder.Logging.AddDebug();
+builder.Logging.AddConsole();
+// Configura o suporte a CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
-
+app.Urls.Add("http://0.0.0.0:5053");
 // Configura a interface Swagger para API
 app.UseSwagger();
 app.UseSwaggerUI(c =>
@@ -83,17 +97,26 @@ app.UseSwaggerUI(c =>
 });
 
 // Configura o pipeline do HTTP request
-app.UseStaticFiles(); // Servindo arquivos estáticos, como imagens
+// Servindo arquivos estáticos, como imagens
+var userImagesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "userimages");
 
+// Verifica se o diretório existe, e cria se necessário
+if (!Directory.Exists(userImagesPath))
+{
+    Directory.CreateDirectory(userImagesPath);
+}
 // Se necessário, configura a pasta 'userimages' como acessível diretamente
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "userimages")),
+    FileProvider = new PhysicalFileProvider(userImagesPath),
     RequestPath = "/userimages"
 });
 
 // Redireciona as requisições HTTP para HTTPS
-app.UseHttpsRedirection();
+
+
+// Habilita o CORS
+app.UseCors("AllowAll");
 
 app.UseAuthentication(); // Autenticação
 app.UseAuthorization(); // Autorização

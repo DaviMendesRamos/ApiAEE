@@ -59,6 +59,21 @@ namespace apiAEE.Migrations
                     b.ToTable("Usuarios", (string)null);
                 });
 
+            modelBuilder.Entity("apiAEE.Entities.Cadastrar", b =>
+                {
+                    b.Property<int>("CodEquipe")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CodEvento")
+                        .HasColumnType("int");
+
+                    b.HasKey("CodEquipe", "CodEvento");
+
+                    b.HasIndex("CodEvento");
+
+                    b.ToTable("Cadastras");
+                });
+
             modelBuilder.Entity("apiAEE.Entities.Equipe", b =>
                 {
                     b.Property<int>("CodEquipe")
@@ -121,6 +136,25 @@ namespace apiAEE.Migrations
                     b.ToTable("Pertences");
                 });
 
+            modelBuilder.Entity("apiAEE.Entities.Cadastrar", b =>
+                {
+                    b.HasOne("apiAEE.Entities.Equipe", "Equipe")
+                        .WithMany("Cadastrar")
+                        .HasForeignKey("CodEquipe")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("apiAEE.Entities.Evento", "Evento")
+                        .WithMany("Cadastrar")
+                        .HasForeignKey("CodEvento")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Equipe");
+
+                    b.Navigation("Evento");
+                });
+
             modelBuilder.Entity("apiAEE.Entities.Pertence", b =>
                 {
                     b.HasOne("apiAEE.Entities.Equipe", "Equipe")
@@ -147,7 +181,14 @@ namespace apiAEE.Migrations
 
             modelBuilder.Entity("apiAEE.Entities.Equipe", b =>
                 {
+                    b.Navigation("Cadastrar");
+
                     b.Navigation("Pertences");
+                });
+
+            modelBuilder.Entity("apiAEE.Entities.Evento", b =>
+                {
+                    b.Navigation("Cadastrar");
                 });
 #pragma warning restore 612, 618
         }

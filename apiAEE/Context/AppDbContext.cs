@@ -12,6 +12,8 @@ namespace apiAEE.Context
         public DbSet<Pertence> Pertences { get; set; }
         public DbSet<Evento> Eventos { get; set; }
 
+        public DbSet<Cadastrar> Cadastras { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Configuração da tabela associativa "Pertence"
