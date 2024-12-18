@@ -99,7 +99,8 @@ namespace apiAEE.Controllers
             return Ok($"Equipe com o nome '{nome}' foi deletada com sucesso.");
         }
         [HttpGet("equipesDoUsuario")]
-         // Garante que apenas usuários autenticados possam acessar
+        // Garante que apenas usuários autenticados possam acessar
+
         public async Task<IActionResult> ListarEquipesDoUsuario()
         {
             // Obtém o ID do usuário do token JWT
@@ -109,11 +110,6 @@ namespace apiAEE.Controllers
             {
                 return Unauthorized("Usuário não autenticado.");
             }
-
-           
-
-            // Verifica se o ID do usuário existe no token
-           
 
             // Converte o ID para int (ou o tipo que você está usando para IDs)
             var id = int.Parse(usuarioId);
@@ -129,7 +125,14 @@ namespace apiAEE.Controllers
                 return Ok(new List<Equipe>());
             }
 
-            return Ok(equipes); // Retorna as equipes em formato JSON
+            // Define a propriedade `DeveSerializarCod` para cada equipe
+            foreach (var equipe in equipes)
+            {
+                equipe.DeveSerializarCod = true; // Define como true para serializar CodEquipe
+            }
+
+            return Ok(equipes); // Retorna as equipes com CodEquipe configurado
         }
+
     }
 }

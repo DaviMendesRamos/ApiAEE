@@ -29,7 +29,7 @@ namespace apiAEE.Controllers
             {
                 return BadRequest("Nome do evento é obrigatório.");
             }
-
+            
             var evento = new Evento
             {
                 NomeEvento = eventoRequest.NomeEvento,
@@ -37,7 +37,7 @@ namespace apiAEE.Controllers
                 DataInicio = eventoRequest.DataInicio,
                 DataFim = eventoRequest.DataFim
             };
-
+            evento.DeveSerializarCod = false;
             _context.Eventos.Add(evento);
             await _context.SaveChangesAsync();
 
@@ -108,12 +108,20 @@ namespace apiAEE.Controllers
             try
             {
                 var eventos = await _context.Eventos.ToListAsync(); // Busca todos os eventos
-                return Ok(eventos); // Retorna todos os eventos
+
+                // Modificar a propriedade `DeveSerializarCod` de cada evento individualmente
+                foreach (var evento in eventos)
+                {
+                    evento.DeveSerializarCod = true; // Defina como false para não serializar o `CodEvento`
+                }
+
+                return Ok(eventos); // Retorna todos os eventos com a modificação aplicada
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
             }
         }
+
     }
 }

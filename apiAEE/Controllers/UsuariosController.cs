@@ -364,8 +364,19 @@ public class UsuariosController : ControllerBase
             });
         }
     }
-
-
+    [HttpGet("[action]")]
+    public async Task<IActionResult> ListarUsuarios()
+    {
+        try
+        {
+            var usuarios = await dbContext.Usuarios.ToListAsync(); // Busca todos os eventos
+            return Ok(usuarios); // Retorna todos os eventos
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
+        }
+    }
 
 }
 
