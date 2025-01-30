@@ -9,44 +9,44 @@ namespace apiAEE.Context
 
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Equipe> Equipes { get; set; }
-        public DbSet<Pertence> Pertences { get; set; }
+        public DbSet<Inscricao> Inscricoes { get; set; }
         public DbSet<Evento> Eventos { get; set; }
         public DbSet<Midia> Midias { get; set; }
-        public DbSet<Amistoso> Amistososos { get; set; }
+        public DbSet<Amistoso> Amistosos { get; set; }
         public DbSet<Partida> Partidas { get; set; }
         public DbSet<Participar> Participas { get; set; }
-        public DbSet<Cadastrar> Cadastras { get; set; }
+        public DbSet<Membro> Membros { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Configuração da tabela associativa "Pertence"
-            modelBuilder.Entity<Pertence>()
+            modelBuilder.Entity<Membro>()
                 .HasKey(p => new { p.CodEquipe, p.ID});
 
-            modelBuilder.Entity<Pertence>()
+            modelBuilder.Entity<Membro>()
                 .HasOne(p => p.Equipe)
-                .WithMany(e => e.Pertences)
+                .WithMany(e => e.Membros)
                 .HasForeignKey(p => p.CodEquipe)
                 .OnDelete(DeleteBehavior.Restrict); // Evita cascatas desnecessárias
 
-            modelBuilder.Entity<Pertence>()
+            modelBuilder.Entity<Membro>()
                 .HasOne(p => p.Usuario)
-                .WithMany(u => u.Pertences)
+                .WithMany(u => u.Membros)
                 .HasForeignKey(p => p.ID)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Configurar a tabela intermediária "Cadastrar"
-            modelBuilder.Entity<Cadastrar>()
+            modelBuilder.Entity<Inscricao>()
                 .HasKey(c => new { c.CodEquipe, c.CodEvento }); // Definir chave composta
 
-            modelBuilder.Entity<Cadastrar>()
+            modelBuilder.Entity<Inscricao>()
                 .HasOne(c => c.Equipe) // Relacionamento com "Equipe"
-                .WithMany(e => e.Cadastrar) // Uma equipe pode estar em várias inscrições
+                .WithMany(e => e.Inscricoes) // Uma equipe pode estar em várias inscrições
                 .HasForeignKey(c => c.CodEquipe) // Chave estrangeira
                 .OnDelete(DeleteBehavior.Cascade); // Comportamento de exclusão em cascata
 
-            modelBuilder.Entity<Cadastrar>()
+            modelBuilder.Entity<Inscricao>()
                 .HasOne(c => c.Evento) // Relacionamento com "Evento"
-                .WithMany(e => e.Cadastrar) // Um evento pode ter várias equipes inscritas
+                .WithMany(e => e.Inscricoes) // Um evento pode ter várias equipes inscritas
                 .HasForeignKey(c => c.CodEvento) // Chave estrangeira
                 .OnDelete(DeleteBehavior.Cascade); // Comportamento de exclusão em cascat
 
@@ -55,7 +55,7 @@ namespace apiAEE.Context
 
             // Relacionamento entre Participar e Cadastrar
             modelBuilder.Entity<Participar>()
-                .HasOne(p => p.Cadastrar)
+                .HasOne(p => p.Inscricao)
                 .WithMany(c => c.Participar)
                 .HasForeignKey(p => new { p.CodEquipe, p.CodEvento })
                 .OnDelete(DeleteBehavior.Cascade);

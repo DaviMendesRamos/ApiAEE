@@ -46,13 +46,13 @@ namespace apiAEE.Controllers
             await _context.SaveChangesAsync();
 
             // Criar a associação no controlador de Pertence
-            var pertence = new Pertence
+            var pertence = new Membro
             {
                 ID = int.Parse(usuarioId),
                 CodEquipe = equipe.CodEquipe
             };
 
-            _context.Pertences.Add(pertence);
+            _context.Membros.Add(pertence);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(BuscarEquipePorNome), new { nome = equipe.NomeEquipe }, equipe);
@@ -63,7 +63,7 @@ namespace apiAEE.Controllers
         public async Task<IActionResult> BuscarEquipePorNome(string nome)
         {
             var equipe = await _context.Equipes
-                .Include(e => e.Pertences)
+                .Include(e => e.Membros)
                 .ThenInclude(p => p.Usuario)
                 .FirstOrDefaultAsync(e => e.NomeEquipe.Equals(nome, StringComparison.OrdinalIgnoreCase));
 
@@ -89,8 +89,8 @@ namespace apiAEE.Controllers
             }
 
             // Remover associações da equipe na tabela Pertence
-            var pertences = _context.Pertences.Where(p => p.CodEquipe == equipe.CodEquipe);
-            _context.Pertences.RemoveRange(pertences);
+            var pertences = _context.Membros.Where(p => p.CodEquipe == equipe.CodEquipe);
+            _context.Membros.RemoveRange(pertences);
 
             // Remover a equipe
             _context.Equipes.Remove(equipe);
@@ -115,7 +115,7 @@ namespace apiAEE.Controllers
             var id = int.Parse(usuarioId);
 
             // Busca as equipes associadas ao usuário
-            var equipes = await _context.Pertences
+            var equipes = await _context.Membros
                 .Where(p => p.ID == id)
                 .Select(p => p.Equipe) // Retorna apenas as equipes associadas
                 .ToListAsync();

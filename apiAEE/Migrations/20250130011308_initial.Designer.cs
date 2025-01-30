@@ -12,8 +12,8 @@ using apiAEE.Context;
 namespace apiAEE.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241212235805_2")]
-    partial class _2
+    [Migration("20250130011308_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -77,21 +77,6 @@ namespace apiAEE.Migrations
                     b.ToTable("Amistososos");
                 });
 
-            modelBuilder.Entity("apiAEE.Entities.Cadastrar", b =>
-                {
-                    b.Property<int>("CodEquipe")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CodEvento")
-                        .HasColumnType("int");
-
-                    b.HasKey("CodEquipe", "CodEvento");
-
-                    b.HasIndex("CodEvento");
-
-                    b.ToTable("Cadastras");
-                });
-
             modelBuilder.Entity("apiAEE.Entities.Equipe", b =>
                 {
                     b.Property<int>("CodEquipe")
@@ -143,6 +128,36 @@ namespace apiAEE.Migrations
                     b.HasKey("CodEvento");
 
                     b.ToTable("Eventos");
+                });
+
+            modelBuilder.Entity("apiAEE.Entities.Inscricao", b =>
+                {
+                    b.Property<int>("CodEquipe")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CodEvento")
+                        .HasColumnType("int");
+
+                    b.HasKey("CodEquipe", "CodEvento");
+
+                    b.HasIndex("CodEvento");
+
+                    b.ToTable("Inscricoes");
+                });
+
+            modelBuilder.Entity("apiAEE.Entities.Membro", b =>
+                {
+                    b.Property<int>("CodEquipe")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ID")
+                        .HasColumnType("int");
+
+                    b.HasKey("CodEquipe", "ID");
+
+                    b.HasIndex("ID");
+
+                    b.ToTable("Membros");
                 });
 
             modelBuilder.Entity("apiAEE.Entities.Midia", b =>
@@ -210,21 +225,6 @@ namespace apiAEE.Migrations
                     b.ToTable("Partidas");
                 });
 
-            modelBuilder.Entity("apiAEE.Entities.Pertence", b =>
-                {
-                    b.Property<int>("CodEquipe")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ID")
-                        .HasColumnType("int");
-
-                    b.HasKey("CodEquipe", "ID");
-
-                    b.HasIndex("ID");
-
-                    b.ToTable("Pertences");
-                });
-
             modelBuilder.Entity("apiAEE.Entities.Amistoso", b =>
                 {
                     b.HasOne("apiAEE.Entities.Equipe", "Equipe")
@@ -244,16 +244,16 @@ namespace apiAEE.Migrations
                     b.Navigation("Partida");
                 });
 
-            modelBuilder.Entity("apiAEE.Entities.Cadastrar", b =>
+            modelBuilder.Entity("apiAEE.Entities.Inscricao", b =>
                 {
                     b.HasOne("apiAEE.Entities.Equipe", "Equipe")
-                        .WithMany("Cadastrar")
+                        .WithMany("Inscricoes")
                         .HasForeignKey("CodEquipe")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("apiAEE.Entities.Evento", "Evento")
-                        .WithMany("Cadastrar")
+                        .WithMany("Inscricoes")
                         .HasForeignKey("CodEvento")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -261,6 +261,25 @@ namespace apiAEE.Migrations
                     b.Navigation("Equipe");
 
                     b.Navigation("Evento");
+                });
+
+            modelBuilder.Entity("apiAEE.Entities.Membro", b =>
+                {
+                    b.HasOne("apiAEE.Entities.Equipe", "Equipe")
+                        .WithMany("Membros")
+                        .HasForeignKey("CodEquipe")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Usuario", "Usuario")
+                        .WithMany("Membros")
+                        .HasForeignKey("ID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Equipe");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("apiAEE.Entities.Midia", b =>
@@ -281,60 +300,41 @@ namespace apiAEE.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("apiAEE.Entities.Cadastrar", "Cadastrar")
+                    b.HasOne("apiAEE.Entities.Inscricao", "Inscricao")
                         .WithMany("Participar")
                         .HasForeignKey("CodEquipe", "CodEvento")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Cadastrar");
+                    b.Navigation("Inscricao");
 
                     b.Navigation("Partida");
                 });
 
-            modelBuilder.Entity("apiAEE.Entities.Pertence", b =>
-                {
-                    b.HasOne("apiAEE.Entities.Equipe", "Equipe")
-                        .WithMany("Pertences")
-                        .HasForeignKey("CodEquipe")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Usuario", "Usuario")
-                        .WithMany("Pertences")
-                        .HasForeignKey("ID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Equipe");
-
-                    b.Navigation("Usuario");
-                });
-
             modelBuilder.Entity("Usuario", b =>
                 {
-                    b.Navigation("Pertences");
-                });
-
-            modelBuilder.Entity("apiAEE.Entities.Cadastrar", b =>
-                {
-                    b.Navigation("Participar");
+                    b.Navigation("Membros");
                 });
 
             modelBuilder.Entity("apiAEE.Entities.Equipe", b =>
                 {
                     b.Navigation("Amistoso");
 
-                    b.Navigation("Cadastrar");
+                    b.Navigation("Inscricoes");
 
-                    b.Navigation("Pertences");
+                    b.Navigation("Membros");
                 });
 
             modelBuilder.Entity("apiAEE.Entities.Evento", b =>
                 {
-                    b.Navigation("Cadastrar");
+                    b.Navigation("Inscricoes");
 
                     b.Navigation("Midias");
+                });
+
+            modelBuilder.Entity("apiAEE.Entities.Inscricao", b =>
+                {
+                    b.Navigation("Participar");
                 });
 
             modelBuilder.Entity("apiAEE.Entities.Partida", b =>

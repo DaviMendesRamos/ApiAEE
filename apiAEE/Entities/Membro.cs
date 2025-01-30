@@ -1,6 +1,6 @@
 ﻿namespace apiAEE.Entities
 {
-    public class Pertence
+    public class Membro
     {
         public int CodEquipe { get; set; }
         public Equipe Equipe { get; set; }

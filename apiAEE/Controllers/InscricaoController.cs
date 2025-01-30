@@ -8,14 +8,14 @@ namespace apiAEE.Controllers
 
         [ApiController]
         [Route("api/[controller]")]
-        public class CadastrarController : ControllerBase
+        public class InscricaoController : ControllerBase
         {
-            private static readonly List<Cadastrar> Inscricoes = new();
+            private static readonly List<Inscricao> Inscricoes = new();
 
             private readonly AppDbContext dbContext;
                 private readonly IConfiguration _config;
 
-        public CadastrarController(AppDbContext dbContext, IConfiguration config)
+        public InscricaoController(AppDbContext dbContext, IConfiguration config)
         {
             _config = config;
             this.dbContext = dbContext;
@@ -23,7 +23,7 @@ namespace apiAEE.Controllers
 
         [HttpPost("InscreverEquipe")]
        
-        public async Task<IActionResult> InscreverEquipe([FromBody] Cadastrar request)
+        public async Task<IActionResult> InscreverEquipe([FromBody] Inscricao request)
         {
             if (request == null || request.CodEvento <= 0 || request.CodEquipe <= 0)
             {
@@ -31,7 +31,7 @@ namespace apiAEE.Controllers
             }
 
             // Verifica se a equipe já está inscrita no evento
-            var inscricaoExistente = await dbContext.Cadastras
+            var inscricaoExistente = await dbContext.Inscricoes
                 .AnyAsync(i => i.CodEvento == request.CodEvento && i.CodEquipe == request.CodEquipe);
 
             if (inscricaoExistente)
@@ -40,7 +40,7 @@ namespace apiAEE.Controllers
             }
 
             // Cria uma nova inscrição
-            var novaInscricao = new Cadastrar
+            var novaInscricao = new Inscricao
             {
                 CodEvento = request.CodEvento,
                 CodEquipe = request.CodEquipe,
@@ -48,7 +48,7 @@ namespace apiAEE.Controllers
             };
 
             // Adiciona a inscrição ao banco de dados
-            dbContext.Cadastras.Add(novaInscricao);
+            dbContext.Inscricoes.Add(novaInscricao);
             await dbContext.SaveChangesAsync();
 
             return Ok("Inscrição realizada com sucesso.");
@@ -63,7 +63,7 @@ namespace apiAEE.Controllers
             }
 
             // Busca as equipes inscritas no evento
-            var equipes = await dbContext.Cadastras
+            var equipes = await dbContext.Inscricoes
                 .Where(c => c.CodEvento == codEvento)
                 .Include(c => c.Equipe) // Faz o join com a entidade Equipe
                 .Select(c => new

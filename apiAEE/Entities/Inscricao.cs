@@ -2,7 +2,7 @@
 
 namespace apiAEE.Entities
 {
-    public class Cadastrar
+    public class Inscricao
     {
         public int CodEquipe { get; set; } // Identificador da equipe
         [JsonIgnore]

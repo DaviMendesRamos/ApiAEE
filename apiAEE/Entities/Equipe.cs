@@ -26,10 +26,10 @@ namespace apiAEE.Entities
 
         // Relacionamento com "Pertence"
         [JsonIgnore]
-        public ICollection<Pertence>? Pertences { get; set; }
+        public ICollection<Membro>? Membros { get; set; }
 
         [JsonIgnore]
-        public ICollection<Cadastrar>? Cadastrar { get; set; }
+        public ICollection<Inscricao>? Inscricoes { get; set; }
 
         [JsonIgnore]
         public ICollection<Amistoso>? Amistoso { get; set; }

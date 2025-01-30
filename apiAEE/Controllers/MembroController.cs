@@ -7,26 +7,26 @@ namespace apiAEE.Controllers
 {
 	[ApiController]
 	[Route("api/[controller]")]
-	public class PertenceController : ControllerBase
+	public class MembroController : ControllerBase
 	{
 		private readonly AppDbContext _context;
 
-		public PertenceController(AppDbContext context)
+		public MembroController(AppDbContext context)
 		{
 			_context = context;
 		}
 
 		[HttpGet]
-		public async Task<ActionResult<IEnumerable<Pertence>>> GetPertence()
+		public async Task<ActionResult<IEnumerable<Membro>>> GetPertence()
 		{
-			return await _context.Pertences
+			return await _context.Membros
 				.Include(p => p.Usuario)
 				.Include(p => p.Equipe)
 				.ToListAsync();
 		}
 
 		[HttpPost("inscrever")]
-		public async Task<ActionResult<Pertence>> InscreverUsuarioEmEquipe([FromBody] object dados)
+		public async Task<ActionResult<Membro>> InscreverUsuarioEmEquipe([FromBody] object dados)
 		{
 			try
 			{
@@ -50,14 +50,14 @@ namespace apiAEE.Controllers
 				}
 
 				// Criar o relacionamento Pertence
-				var pertence = new Pertence
+				var pertence = new Membro
 				{
 					ID = usuarioId,
 					CodEquipe = equipeId
 				};
 
 				// Adicionar o relacionamento no banco
-				_context.Pertences.Add(pertence);
+				_context.Membros.Add(pertence);
 				await _context.SaveChangesAsync();
 
 				// Retornar sucesso com o objeto Pertence criado
@@ -74,12 +74,12 @@ namespace apiAEE.Controllers
 		[HttpDelete]
 		public async Task<IActionResult> RemoveUsuarioFromEquipe(int usuarioId, int equipeId)
 		{
-			var pertence = await _context.Pertences
+			var pertence = await _context.Membros
 				.FirstOrDefaultAsync(p => p.ID == usuarioId && p.CodEquipe == equipeId);
 
 			if (pertence == null) return NotFound();
 
-			_context.Pertences.Remove(pertence);
+			_context.Membros.Remove(pertence);
 			await _context.SaveChangesAsync();
 
 			return NoContent();

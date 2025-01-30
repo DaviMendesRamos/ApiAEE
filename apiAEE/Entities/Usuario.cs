@@ -32,7 +32,7 @@ public class Usuario
 
 	// Coleção de relacionamentos com equipes
 	[JsonIgnore]
-	public ICollection<Pertence> Pertences { get; set; } = new List<Pertence>();
+	public ICollection<Membro> Membros { get; set; } = new List<Membro>();
 
     public bool IsAdmin { get; set; } = false;
 }

@@ -23,7 +23,7 @@ namespace apiAEE.Entities
         public IFormFile? Imagem { get; set; }
 
         [JsonIgnore]
-        public ICollection<Cadastrar>? Cadastrar { get; set; }
+        public ICollection<Inscricao>? Inscricoes { get; set; }
 
         // Propriedade para associação com mídias (opcional)
         [JsonIgnore]
