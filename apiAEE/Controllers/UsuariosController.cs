@@ -295,7 +295,7 @@ public class UsuariosController : ControllerBase
             }
 
             // Define a URL pública da imagem
-            usuario.UrlImagem = $"http://192.168.1.6:5053/userimages/{uniqueFileName}";
+            usuario.UrlImagem = $"http://192.168.193.107:5053/userimages/{uniqueFileName}";
 
             // Salva as alterações no banco de dados
             await dbContext.SaveChangesAsync();
